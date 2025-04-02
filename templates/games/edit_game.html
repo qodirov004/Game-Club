@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+
+{% block title %}O'yinni Tahrirlash - O'yin Administratori{% endblock %}
+{% block header_title %}O'yinni Tahrirlash{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h2 class="page-title">O'yinni tahrirlash</h2>
+  <p class="page-subtitle">O'yin tafsilotlarini yangilang</p>
+</div>
+
+<div class="row">
+  <div class="col-12 col-lg-8 mx-auto">
+      <div class="card">
+          <div class="card-header">
+              <h4 class="card-title">{{ game.name }}</h4>
+              <div class="card-subtitle">O'yin tafsilotlarini tahrirlash</div>
+          </div>
+          <div class="card-body">
+              <form method="post" enctype="multipart/form-data">
+                  {% csrf_token %}
+                  
+                  <div class="mb-3">
+                      <label for="name" class="form-label">O'yin Nomi</label>
+                      <input type="text" id="name" name="name" class="form-control" value="{{ game.name }}" required>
+                      {% if errors.name %}
+                          <div class="text-danger">{{ errors.name }}</div>
+                      {% endif %}
+                  </div>
+                  
+                  <div class="mb-3">
+                      <label for="image" class="form-label">O'yin Rasmi</label>
+                      {% if game.image %}
+                          <div class="mb-2">
+                              <img src="{{ game.image.url }}" alt="{{ game.name }}" class="img-thumbnail" style="max-height: 150px;">
+                          </div>
+                      {% endif %}
+                      <input type="file" id="image" name="image" class="form-control">
+                      <div class="form-text">To'ldiruvchi tasvirdan foydalanish uchun bo'sh qoldiring</div>
+                  </div>
+                  
+                  <div class="row">
+                      <div class="col-12 col-md-6 mb-3">
+                          <label for="standard_price" class="form-label">Standard Tarif (soatiga)</label>
+                          <div class="input-group">
+                              <span class="input-group-text">So'm</span>
+                              <input type="number" id="standard_price" name="standard_price" class="form-control" min="0" step="0.01" value="{{ game.standard_price }}" required>
+                          </div>
+                          {% if errors.standard_price %}
+                              <div class="text-danger">{{ errors.standard_price }}</div>
+                          {% endif %}
+                      </div>
+                      <div class="col-12 col-md-6 mb-3">
+                          <label for="vip_price" class="form-label">VIP Tarif (soatiga)</label>
+                          <div class="input-group">
+                              <span class="input-group-text">So'm</span>
+                              <input type="number" id="vip_price" name="vip_price" class="form-control" min="0" step="0.01" value="{{ game.vip_price }}" required>
+                          </div>
+                          {% if errors.vip_price %}
+                              <div class="text-danger">{{ errors.vip_price }}</div>
+                          {% endif %}
+                      </div>
+                  </div>
+                  
+                  <div class="d-flex justify-content-between">
+                      <a href="{% url 'game_list' %}" class="btn btn-outline-danger">Bekor qilish</a>
+                      <button type="submit" class="btn btn-primary">Tahrirlash</button>
+                  </div>
+              </form>
+          </div>
+      </div>
+  </div>
+</div>
+{% endblock %}

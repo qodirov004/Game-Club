@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+
+{% block title %}O'yin Qo'shish - O'yin Administratori{% endblock %}
+{% block header_title %}O'yin Qo'shish{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h2 class="page-title">Yangi O'yin Qo'shish</h2>
+  <p class="page-subtitle">To'plamga yangi o'yin qo'shish</p>
+</div>
+
+<div class="row">
+  <div class="col-12 col-lg-8 mx-auto">
+      <div class="card">
+          <div class="card-header">
+              <h4 class="card-title">O'yin ma'lumotlari</h4>
+              <div class="card-subtitle">Yangi o'yin tafsilotlarini kiriting</div>
+          </div>
+          <div class="card-body">
+              <form method="post" enctype="multipart/form-data">
+                  {% csrf_token %}
+                  
+                  <div class="mb-3">
+                      <label for="name" class="form-label">O'yin Nomi</label>
+                      <input type="text" id="name" name="name" class="form-control" placeholder="Masalan : Bilyard stol - 1" required>
+                      {% if errors.name %}
+                          <div class="text-danger">{{ errors.name }}</div>
+                      {% endif %}
+                  </div>
+                  
+                  <div class="mb-3">
+                      <label for="image" class="form-label">O'yin Rasmi</label>
+                      <input type="file" id="image" name="image" class="form-control">
+                      <div class="form-text">Toʻldiruvchi tasvirdan foydalanish uchun bo'sh qoldiring</div>
+                  </div>
+                  
+                  <div class="row">
+                      <div class="col-12 col-md-6 mb-3">
+                          <label for="standard_price" class="form-label">Standart Tarif Puli (soatiga)</label>
+                          <div class="input-group">
+                              <span class="input-group-text">So'm</span>
+                              <input type="number" id="standard_price" name="standard_price" class="form-control" min="0" step="0.01" placeholder="20000" value="{{ standard_price|default:'' }}" required>
+                          </div>
+                          {% if errors.standard_price %}
+                              <div class="text-danger">{{ errors.standard_price }}</div>
+                          {% endif %}
+                      </div>
+                      <div class="col-12 col-md-6 mb-3">
+                          <label for="vip_price" class="form-label">VIP Tarifi Puli (soatiga)</label>
+                          <div class="input-group">
+                              <span class="input-group-text">$</span>
+                              <input type="number" id="vip_price" name="vip_price" class="form-control" min="0" step="0.01" placeholder="25000" value="{{ vip_price|default:'' }}" required>
+                          </div>
+                          {% if errors.vip_price %}
+                              <div class="text-danger">{{ errors.vip_price }}</div>
+                          {% endif %}
+                      </div>
+                  </div>
+                  
+                  <div class="d-flex justify-content-between">
+                      <a href="{% url 'game_list' %}" class="btn btn-outline-danger">Bekor qilish</a>
+                      <button type="submit" class="btn btn-primary">Qo'shish</button>
+                  </div>
+              </form>
+          </div>
+      </div>
+  </div>
+</div>
+{% endblock %}

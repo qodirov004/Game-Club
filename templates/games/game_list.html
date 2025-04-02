@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% block title %}O'yinlar - O'yin Administratori{% endblock %}
+{% block header_title %}O'yinlar{% endblock %}
+
+{% block content %}
+<div class="page-header d-flex flex-column flex-md-row justify-content-between align-items-md-center">
+    <div>
+        <h2 class="page-title">O'yinlar</h2>
+        <p class="page-subtitle">Mavjud o'yinlarni boshqarish</p>
+    </div>
+    <a href="{% url 'add_game' %}" class="btn btn-primary mt-2 mt-md-0">
+        <i class="fas fa-plus"></i> Yangi o'yin qo'shish
+    </a>
+</div>
+
+<div class="row d-flex flex-wrap">
+    {% if games %}
+    {% for game in games %}
+    <div class="col-12 col-sm-6 col-md-4 col-lg-3 mb-4">
+        <div class="game-card {% if game.active_session %}bg-danger text-black{% endif %}">
+            <a href="{% url 'start_game' game.pk %}">
+                {% if game.active_session %}
+                    <a href="{% url 'active_session' game.active_session.pk %}" class="game-image-link">
+                        <img src="{{ game.image.url }}" alt="{{ game.name }}" class="game-image">
+                    </a>
+                {% else %}
+                    <img src="{{ game.image.url }}" alt="{{ game.name }}" class="game-image">
+                {% endif %}
+            </a>
+            <div class="game-details text-center">
+                <h4 class="game-title">{{ game.name }}</h4>
+                <div class="game-price">
+                    <span class="game-price-tag">Standard</span>
+                    <span>${{ game.standard_price }}/soatiga</span>
+                </div>
+                <div class="game-price">
+                    <span class="game-price-tag vip">VIP</span>
+                    <span>${{ game.vip_price }}/soatiga</span>
+                </div>
+                <div class="game-actions">
+                    <a href="{% url 'edit_game' game.pk %}" class="btn btn-outline-warning">Tahrirlash</a>
+                    <a href="{% url 'delete_game' game.pk %}" class="btn btn-danger btn-icon">
+                        <i class="fas fa-trash"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+    {% else %}
+    <div class="col-12">
+        <div class="alert alert-info">
+            O'yin mavjud emas <a href="{% url 'add_game' %}">O'yin qo'shish</a>.
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+{% endblock %}
