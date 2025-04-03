@@ -120,7 +120,6 @@ def edit_game(request, pk):
     
     return render(request, 'games/edit_game.html', {'game': game})
 
-@login_required
 def delete_game(request, pk):
     game = get_object_or_404(Game, pk=pk)
     
