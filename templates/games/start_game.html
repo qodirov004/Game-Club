@@ -1,0 +1,301 @@
+{% extends "base.html" %}
+
+{% block title %}O'yinni Boshlash - O'yin Administratori{% endblock %}
+{% block header_title %}O'yinni Boshlash{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h2 class="page-title">{{ game.name }}</h2>
+  <p class="page-subtitle">Yangi o'yin seansini boshlang</p>
+</div>
+
+<div class="row">
+  <div class="col-12 col-lg-8 mx-auto">
+      <div class="card">
+          <div class="card-header">
+              <h4 class="card-title">Tarifni tanlang</h4>
+              <div class="card-subtitle">Ushbu o'yin uchun tarifni tanlang</div>
+          </div>
+          <div class="card-body">
+              <div class="text-center mb-4">
+                  {% if game.image %}
+                      <img src="{{ game.image.url }}" alt="{{ game.name }}" class="img-fluid rounded" style="max-height: 225px;">
+                  {% else %}
+                      <img src="https://via.placeholder.com/400x225?text={{ game.name|urlencode }}" alt="{{ game.name }}" class="img-fluid rounded">
+                  {% endif %}
+              </div>
+              
+              <form method="post">
+                  {% csrf_token %}
+                  <input type="hidden" name="game" value="{{ game.id }}">
+                  
+                  <div class="tariff-options">
+                      <div class="tariff-option selected" data-tariff="standard">
+                          <input type="radio" name="tariff" value="standard" id="tariff_standard" class="visually-hidden" checked>
+                          <label for="tariff_standard" class="w-100 h-100">
+                              <div class="tariff-name">Standard</div>
+                              <div class="tariff-price">{{ game.standard_price }} So'm</div>
+                              <div class="tariff-unit">soatiga</div>
+                          </label>
+                      </div>
+                  </div>
+                  
+                  <div class="d-flex justify-content-between mt-4">
+                      <a href="{% url 'game_list' %}" class="btn btn-outline-danger">Bekor qilish</a>
+                      <button type="submit" class="btn btn-primary">O'yinni boshlash</button>
+                  </div>
+              </form>
+          </div>
+      </div>
+  </div>
+</div>
+
+<!-- Bugungi o'yinlar jadvali -->
+<div class="card mt-4">
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <div>
+      <h4 class="card-title">Bugungi o'yinlar</h4>
+      <div class="card-subtitle">Bugun o'ynalgan o'yinlar ro'yxati</div>
+    </div>
+    <div class="date-display">
+      <span id="currentDate"></span>
+      <button id="refreshButton" class="btn-refresh" title="Yangilash">
+        <i class="fas fa-sync-alt"></i>
+      </button>
+    </div>
+  </div>
+  <div class="card-body text-center">
+    <div id="tableContainer" class="table-container text-center">
+      <table class="table table-hover text-center">
+        <thead>
+          <tr>
+            <th class="text-center">Boshlash vaqti</th>
+            <th>Tarif</th>
+            <th>Davomiyligi</th>
+            <th>Narxi</th>
+            <th class="px-5">Holati</th>
+            <th class="px-5">Amallar</th>
+          </tr>
+        </thead>
+        <tbody id="todayGamesTable">
+          {% if completed_sessions %}
+            {% for session in completed_sessions %}
+              <tr class="{% if session.is_paid %}bg-success-light{% else %}bg-danger-light{% endif %}" data-session-date="{{ session.start_time|date:'Y-m-d' }}">
+                <td class="text-center">{{ session.start_time|date:"H:i" }}</td>
+                <td>{{ session.get_tariff_display }}</td>
+                <td>{{ session.get_duration_display }}</td>
+                <td>{{ session.get_cost|floatformat:0 }} So'm</td>
+                <td>
+                  <span class="status-indicator {% if session.is_paid %}active{% else %}inactive{% endif %}"></span>
+                  {{ session.is_paid|yesno:"To'landi, To'lanmagan" }}
+                </td>
+                <td>
+                  {% if not session.is_paid %}
+                    <a href="{% url 'mark_as_paid' session.pk %}" class="btn btn-outline-success btn-sm px-5">To'lash</a>
+                  {% endif %}
+                </td>
+              </tr>
+            {% endfor %}
+          {% else %}
+            <tr id="noGamesRow">
+              <td colspan="6" class="text-center">Bugun o'ynalgan o'yinlar yo'q</td>
+            </tr>
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- CSS styles -->
+<style>
+  .date-display {
+    display: flex;
+    align-items: center;
+    font-size: 0.9rem;
+    color: #6c757d;
+  }
+  
+  .btn-refresh {
+    background: none;
+    border: none;
+    cursor: pointer;
+    margin-left: 8px;
+    color: #6c757d;
+    padding: 4px;
+    border-radius: 50%;
+  }
+  
+  .btn-refresh:hover {
+    background-color: #f0f0f0;
+  }
+  
+  .btn-refresh i.rotating {
+    animation: rotating 1s linear infinite;
+  }
+  
+  @keyframes rotating {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
+    }
+  }
+  
+  .loading-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(255, 255, 255, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+  }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Tarif tanlash uchun kod
+    const tariffOptions = document.querySelectorAll('.tariff-option');
+    
+    tariffOptions.forEach(option => {
+      const radio = option.querySelector('input[type="radio"]');
+      
+      // Add click event
+      option.addEventListener('click', function() {
+        // Uncheck all radios
+        document.querySelectorAll('.tariff-option input[type="radio"]').forEach(r => {
+          r.checked = false;
+        });
+        
+        // Remove selected class from all options
+        tariffOptions.forEach(opt => {
+          opt.classList.remove('selected');
+        });
+        
+        // Check this radio and add selected class
+        radio.checked = true;
+        this.classList.add('selected');
+      });
+    });
+    
+    // Jadval uchun kunlik yangilanish kodi
+    const refreshButton = document.getElementById('refreshButton');
+    const currentDateElement = document.getElementById('currentDate');
+    const tableContainer = document.getElementById('tableContainer');
+    const todayGamesTable = document.getElementById('todayGamesTable');
+    
+    // Joriy sanani formatlash
+    function formatDate(date) {
+      const options = { year: 'numeric', month: 'long', day: 'numeric' };
+      return date.toLocaleDateString('uz-UZ', options);
+    }
+    
+    // Bugungi sanani olish
+    function getTodayDateString() {
+      const today = new Date();
+      return today.toISOString().split('T')[0]; // YYYY-MM-DD formatida
+    }
+    
+    // Jadval ma'lumotlarini yangilash
+    function updateTableData() {
+      const today = getTodayDateString();
+      const rows = todayGamesTable.querySelectorAll('tr[data-session-date]');
+      const noGamesRow = document.getElementById('noGamesRow');
+      let visibleRowCount = 0;
+      
+      // Har bir qatorni tekshirish
+      rows.forEach(row => {
+        const sessionDate = row.getAttribute('data-session-date');
+        
+        // Faqat bugungi o'yinlarni ko'rsatish
+        if (sessionDate === today) {
+          row.style.display = '';
+          visibleRowCount++;
+        } else {
+          row.style.display = 'none';
+        }
+      });
+      
+      // Agar bugungi o'yinlar bo'lmasa, xabarni ko'rsatish
+      if (noGamesRow) {
+        noGamesRow.style.display = visibleRowCount > 0 ? 'none' : '';
+      } else if (visibleRowCount === 0) {
+        // Agar xabar qatori mavjud bo'lmasa, yangi qator qo'shish
+        const newRow = document.createElement('tr');
+        newRow.id = 'noGamesRow';
+        newRow.innerHTML = '<td colspan="6" class="text-center">Bugun o\'ynalgan o\'yinlar yo\'q</td>';
+        todayGamesTable.appendChild(newRow);
+      }
+      
+      // Joriy sanani ko'rsatish
+      const today_formatted = formatDate(new Date());
+      currentDateElement.textContent = today_formatted;
+    }
+    
+    // Jadval ma'lumotlarini yangilash
+    function refreshData() {
+      // Yangilash animatsiyasini ko'rsatish
+      const refreshIcon = refreshButton.querySelector('i');
+      refreshIcon.classList.add('rotating');
+      
+      // Yuklash animatsiyasini ko'rsatish
+      const loadingOverlay = document.createElement('div');
+      loadingOverlay.className = 'loading-overlay';
+      loadingOverlay.innerHTML = '<i class="fas fa-spinner fa-spin fa-2x"></i>';
+      tableContainer.style.position = 'relative';
+      tableContainer.appendChild(loadingOverlay);
+      
+      // Sahifani yangilash
+      setTimeout(function() {
+        // Bugungi sanani saqlash
+        const today = getTodayDateString();
+        localStorage.setItem('lastGameTableDate', today);
+        
+        // Sahifani yangilash
+        window.location.reload();
+      }, 1000); // Animatsiyani ko'rsatish uchun kichik kechikish
+    }
+    
+    // Kunlik tekshirish
+    function checkDailyRefresh() {
+      const today = getTodayDateString();
+      const lastTableDate = localStorage.getItem('lastGameTableDate');
+      
+      // Agar oxirgi yangilangan sana bugun bo'lmasa, jadval ma'lumotlarini yangilash
+      if (!lastTableDate || lastTableDate !== today) {
+        localStorage.setItem('lastGameTableDate', today);
+        // Sahifani yangilash o'rniga, faqat jadval ma'lumotlarini yangilash
+        updateTableData();
+      } else {
+        // Jadval ma'lumotlarini yangilash
+        updateTableData();
+      }
+    }
+    
+    // Qo'lda yangilash tugmasi
+    refreshButton.addEventListener('click', function() {
+      refreshData();
+    });
+    
+    // Sahifa yuklanganda tekshirish
+    checkDailyRefresh();
+    
+    // Har soatda tekshirish
+    setInterval(function() {
+      const today = getTodayDateString();
+      const lastTableDate = localStorage.getItem('lastGameTableDate');
+      
+      if (lastTableDate !== today) {
+        refreshData();
+      }
+    }, 3600000); // Har soatda (3600000 ms)
+  });
+</script>
+{% endblock %}

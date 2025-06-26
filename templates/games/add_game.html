@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+
+{% block title %}O'yin Qo'shish - O'yin Administratori{% endblock %}
+{% block header_title %}O'yin Qo'shish{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h2 class="page-title">Yangi O'yin Qo'shish</h2>
+  <p class="page-subtitle">To'plamga yangi o'yin qo'shish</p>
+</div>
+
+<div class="row">
+  <div class="col-12 col-lg-8 mx-auto">
+      <div class="card">
+          <div class="card-header">
+              <h4 class="card-title">O'yin ma'lumotlari</h4>
+              <div class="card-subtitle">Yangi o'yin tafsilotlarini kiriting</div>
+          </div>
+          <div class="card-body">
+              <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                
+                <div class="mb-3">
+                    <label for="name" class="form-label">O'yin Nomi (umumiy)</label>
+                    <input type="text" id="name" name="name" class="form-control" placeholder="Masalan: Bilyard" value="{{ name|default:'' }}" required>
+                    {% if errors.name %}
+                        <div class="text-danger">{{ errors.name }}</div>
+                    {% endif %}
+                </div>
+                
+                <div class="mb-3">
+                    <label for="image" class="form-label">O'yin Rasmi</label>
+                    <input type="file" id="image" name="image" class="form-control">
+                    <div class="form-text">Agar rasm tanlanmasa, sukut bo‘yicha rasm qo‘llaniladi (agar mavjud bo‘lsa)</div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="table_count" class="form-label">Stollar soni</label>
+                    <input type="number" class="form-control" name="table_count" id="table_count" required min="1" placeholder="Masalan: 3" value="{{ table_count|default:'' }}">
+                    {% if errors.table_count %}
+                        <div class="text-danger">{{ errors.table_count }}</div>
+                    {% endif %}
+                </div>
+                
+                <div class="mb-3">
+                    <label for="standard_price" class="form-label">Standart Tarif Puli (soatiga)</label>
+                    <div class="input-group">
+                        <span class="input-group-text">So'm</span>
+                        <input type="number" id="standard_price" name="standard_price" class="form-control" min="0" step="1000" placeholder="20000" value="{{ standard_price|default:'' }}" required>
+                    </div>
+                    {% if errors.standard_price %}
+                        <div class="text-danger">{{ errors.standard_price }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="d-flex justify-content-between">
+                    <a href="{% url 'game_list' %}" class="btn btn-outline-danger">Bekor qilish</a>
+                    <button type="submit" class="btn btn-primary">Qo'shish</button>
+                </div>
+            </form>
+
+          </div>
+      </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,155 @@
+{% extends "base.html" %}
+
+{% block title %}Tugallangan O'yinlar - O'yin Administratori{% endblock %}
+{% block header_title %}Tugallangan O'yinlar{% endblock %}
+
+{% block extra_css %}
+<!-- Dark mode style qo‘shildi -->
+<style>
+  body.dark-mode .stats-card {
+    background-color: #1e1e1e;
+    color: #f1f5f9;
+    border-color: #333;
+  }
+
+  body.dark-mode .stats-icon {
+    background-color: rgba(255, 255, 255, 0.1);
+  }
+
+  body.dark-mode .card {
+    background-color: #1e1e1e;
+    color: #f1f5f9;
+    border-color: #333;
+  }
+
+  body.dark-mode .card-header {
+    background-color: #2c2c2c;
+    border-bottom: 1px solid #444;
+  }
+
+  body.dark-mode .card-subtitle {
+    color: #a0aec0;
+  }
+
+  body.dark-mode .table th {
+    background-color: #2a2a2a;
+    color: #f1f5f9;
+  }
+
+  body.dark-mode .table td {
+    background-color: #1e1e1e;
+    color: #e5e7eb;
+  }
+
+  body.dark-mode .bg-success-light {
+    background-color: rgba(16, 185, 129, 0.1) !important;
+  }
+
+  body.dark-mode .bg-danger-light {
+    background-color: rgba(239, 68, 68, 0.1) !important;
+  }
+
+  body.dark-mode .btn-outline-success {
+    border-color: #10b981;
+    color: #10b981;
+  }
+
+  body.dark-mode .btn-outline-success:hover {
+    background-color: #10b981;
+    color: white;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h2 class="page-title">Tugallangan o'yinlar</h2>
+  <p class="page-subtitle">Tugallangan o'yin seanslarini ko'rish va boshqarish</p>
+</div>
+
+<!-- Stats Cards -->
+<div class="row">
+  <div class="col-12 col-md-4 mb-4">
+      <div class="stats-card">
+          <div class="stats-icon primary">
+              <i class="fas fa-dollar-sign"></i>
+          </div>
+          <div class="stats-info">
+              <div class="stats-value">{{ total_cost|floatformat:2 }} So'm</div>
+              <div class="stats-label">Jami Daromad</div>
+          </div>
+      </div>
+  </div>
+  <div class="col-12 col-md-4 mb-4">
+      <div class="stats-card">
+          <div class="stats-icon success">
+              <i class="fas fa-check-circle"></i>
+          </div>
+          <div class="stats-info">
+              <div class="stats-value">{{ paid_amount|floatformat:2 }} So'm</div>
+              <div class="stats-label">To'langan</div>
+          </div>
+      </div>
+  </div>
+  <div class="col-12 col-md-4 mb-4">
+      <div class="stats-card">
+          <div class="stats-icon danger">
+              <i class="fas fa-exclamation-circle"></i>
+          </div>
+          <div class="stats-info">
+              <div class="stats-value">{{ unpaid_amount|floatformat:2 }} So'm</div>
+              <div class="stats-label">To'lanmagan</div>
+          </div>
+      </div>
+  </div>
+</div>
+
+<!-- Completed Games Table -->
+<div class="card">
+  <div class="card-header">
+      <h4 class="card-title">Tugallangan O'yin Seanslari</h4>
+      <div class="card-subtitle">Tugallangan o'yinlar uchun to'lov holatini boshqarish</div>
+  </div>
+  <div class="card-body text-center">
+    <div class="table-container text-center">
+        <table class="table table-hover text-center">
+            <thead>
+                <tr>
+                    <th class="text-center">Vaqti</th>
+                    <th>Tarif</th>
+                    <th>Davomiyligi</th>
+                    <th>Narxi</th>
+                    <th class="px-5">Holati</th>
+                    <th class="px-5">Amallar</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if completed_sessions %}
+                    {% for session in completed_sessions %}
+                      <tr class="{% if session.is_paid %}bg-success-light{% else %}bg-danger-light{% endif %}" data-session-date="{{ session.start_time|date:'Y-m-d' }}">
+                          <td class="text-center">{{ session.start_time|date:"H:i" }}</td>
+                          <td>{{ session.get_tariff_display }}</td>
+                          <td>{{ session.get_duration_display }}</td>
+                          <td>{{ session.get_cost|floatformat:0 }} So'm</td>
+                          <td>
+                              <span class="status-indicator {% if session.is_paid %}active{% else %}inactive{% endif %}"></span>
+                              {{ session.is_paid|yesno:"To'landi, To'lanmagan" }}
+                          </td>
+                          <td>
+                              {% if not session.is_paid %}
+                                  <a href="{% url 'mark_as_paid' session.pk %}" class="btn btn-outline-success btn-sm px-5">To'lash</a>
+                              {% endif %}
+                          </td>
+                      </tr>
+                  {% endfor %}
+              {% else %}
+                  <tr>
+                      <td colspan="6" class="text-center">Tugallangan o'yin seanslari yo'q</td>
+                  </tr>
+              {% endif %}
+            </tbody>
+        </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

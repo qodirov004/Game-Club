@@ -1,0 +1,242 @@
+{% extends "base.html" %}
+
+{% block title %}Statistika - O'yin Administratori {% endblock %}
+{% block header_title %}Statistika{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.css">
+
+<!-- 🔽 Dark Mode qo‘shimcha CSS -->
+<style>
+  /* Statistika kartochkalari uchun dark mode */
+  body.dark-mode .stats-card,
+  body.dark-mode .card {
+    background-color: #1e1e1e;
+    color: #f1f5f9;
+    border-color: #333;
+  }
+
+  body.dark-mode .card-header {
+    background-color: #2c2c2c;
+    border-bottom: 1px solid #444;
+  }
+
+  body.dark-mode .card-subtitle {
+    color: #a0aec0;
+  }
+
+  body.dark-mode .progress {
+    background-color: #2a2a2a;
+  }
+
+  body.dark-mode .progress-bar {
+    background-color: #4f46e5 !important;
+  }
+
+  body.dark-mode .tabs-link {
+    color: #ccc;
+    border-bottom-color: transparent;
+  }
+
+  body.dark-mode .tabs-link.active {
+    color: #4f46e5;
+    border-bottom-color: #4f46e5;
+  }
+
+  body.dark-mode canvas {
+    background-color: #1e1e1e !important;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h2 class="page-title">Statistika</h2>
+  <p class="page-subtitle">O'yin markazingiz uchun unumdorlik ko'rsatkichlarini ko'ring</p>
+</div>
+
+<!-- Period Tabs -->
+<div class="tabs">
+  <div class="tabs-nav">
+      <a href="{% url 'statistics' %}?period=daily" class="tabs-link {% if period == 'daily' %}active{% endif %}">Kunlik</a>
+      <a href="{% url 'statistics' %}?period=weekly" class="tabs-link {% if period == 'weekly' %}active{% endif %}">Haftalik</a>
+      <a href="{% url 'statistics' %}?period=monthly" class="tabs-link {% if period == 'monthly' %}active{% endif %}">Oylik</a>
+  </div>
+  
+  <div class="tab-content active">
+      <!-- Stats Cards -->
+      <div class="row">
+          <div class="col-12 col-sm-6 col-lg-3 mb-4">
+              <div class="stats-card">
+                  <div class="stats-icon primary">
+                      <i class="fas fa-gamepad"></i>
+                  </div>
+                  <div class="stats-info">
+                      <div class="stats-value">{{ stats.games_count }}</div>
+                      <div class="stats-label">O'ynalgan o'yinlar</div>
+                  </div>
+              </div>
+          </div>
+          <div class="col-12 col-sm-6 col-lg-3 mb-4">
+              <div class="stats-card">
+                  <div class="stats-icon success">
+                      <i class="fas fa-clock"></i>
+                  </div>
+                  <div class="stats-info">
+                      <div class="stats-value">{{ stats.total_hours }}</div>
+                      <div class="stats-label">O'ynalgan soatlar</div>
+                  </div>
+              </div>
+          </div>
+          <div class="col-12 col-sm-6 col-lg-3 mb-4">
+              <div class="stats-card">
+                  <div class="stats-icon warning">
+                      <i class="fas fa-dollar-sign"></i>
+                  </div>
+                  <div class="stats-info">
+                      <div class="stats-value">{{ stats.revenue }} So'm</div>
+                      <div class="stats-label">Daromad</div>
+                  </div>
+              </div>
+          </div>
+          <div class="col-12 col-sm-6 col-lg-3 mb-4">
+              <div class="stats-card">
+                  <div class="stats-icon info">
+                      <i class="fas fa-hourglass-half"></i>
+                  </div>
+                  <div class="stats-info">
+                      <div class="stats-value">{{ stats.average_session }}</div>
+                      <div class="stats-label">O'rtacha seanslar</div>
+                  </div>
+              </div>
+          </div>
+      </div>
+      
+      <!-- Charts -->
+      <div class="row">
+          <div class="col-12 mb-4">
+              <div class="card">
+                  <div class="card-header">
+                      <h4 class="card-title">Daromad Taqsimoti</h4>
+                      <div class="card-subtitle"> {{ period }} davrda O'yin toifalari bo'yicha daromad</div>
+                  </div>
+                  <div class="card-body">
+                      <canvas id="revenueChart" height="300"></canvas>
+                  </div>
+              </div>
+          </div>
+          
+          <div class="col-12 col-lg-6 mb-4">
+              <div class="card">
+                  <div class="card-header">
+                      <h4 class="card-title">Ommabop O'yinlar</h4>
+                      <div class="card-subtitle">{{ period }} davrda eng ko'p o'ynalgan o'yinlar</div>
+                  </div>
+                  <div class="card-body">
+                      {% if game_distribution %}
+                          {% for game in game_distribution %}
+                              <div class="mb-3">
+                                  <div class="d-flex align-items-center mb-2">
+                                      <div class="game-color-indicator" style="background-color: var(--color-{{ forloop.counter }});"></div>
+                                      <div class="d-flex justify-content-between w-100">
+                                          <span>{{ game.name }}</span>
+                                          <span>{{ game.percentage }}%</span>
+                                      </div>
+                                  </div>
+                                  <div class="progress">
+                                      <div class="progress-bar" style="width: {{ game.percentage }}%; background-color: var(--color-{{ forloop.counter }});"></div>
+                                  </div>
+                              </div>
+                          {% endfor %}
+                      {% else %}
+                          <div class="alert alert-info">
+                              Bu davr uchun o'yin ma'lumotlri mavjud emas
+                          </div>
+                      {% endif %}
+                  </div>
+              </div>
+          </div>
+          
+          <div class="col-12 col-lg-6 mb-4">
+              <div class="card">
+                  <div class="card-header">
+                      <h4 class="card-title">Soatlik Taqsimot</h4>
+                      <div class="card-subtitle">Kunning soatiga qarab o'yin seanslari</div>
+                  </div>
+                  <div class="card-body">
+                      <canvas id="hourlyChart" height="300"></canvas>
+                  </div>
+              </div>
+          </div>
+      </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+      const revenueLabels = {{ revenue_labels|safe }};
+      const revenueValues = {{ revenue_data|safe }};
+      const chartColors = {{ chart_colors|safe }};
+      const chartBorderColors = {{ chart_border_colors|safe }};
+      const hourlyLabels = {{ hourly_labels|safe }};
+      const hourlyValues = {{ hourly_data|safe }};
+      
+      const revenueData = {
+          labels: revenueLabels,
+          datasets: [{
+              label: 'Daromad',
+              data: revenueValues,
+              backgroundColor: chartColors,
+              borderColor: chartBorderColors,
+              borderWidth: 1
+          }]
+      };
+      
+      const hourlyData = {
+          labels: hourlyLabels,
+          datasets: [{
+              label: "O'yin seanslari",
+              data: hourlyValues,
+              backgroundColor: 'rgba(99, 102, 241, 0.2)',
+              borderColor: 'rgba(99, 102, 241, 1)',
+              borderWidth: 2,
+              tension: 0.4,
+              fill: true
+          }]
+      };
+      
+      const revenueCtx = document.getElementById('revenueChart').getContext('2d');
+      new Chart(revenueCtx, {
+          type: 'doughnut',
+          data: revenueData,
+          options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: {
+                  legend: {
+                      position: 'right',
+                  }
+              }
+          }
+      });
+      
+      const hourlyCtx = document.getElementById('hourlyChart').getContext('2d');
+      new Chart(hourlyCtx, {
+          type: 'line',
+          data: hourlyData,
+          options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              scales: {
+                  y: {
+                      beginAtZero: true
+                  }
+              }
+          }
+      });
+  });
+</script>
+{% endblock %}

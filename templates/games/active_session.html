@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+
+{% block title %}O'yin Sessiyasi - O'yin Administratori{% endblock %}
+{% block header_title %}O'yin Sessiyasi{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h2 class="page-title">{{ session.game.name }}</h2>
+  <p class="page-subtitle">O'yin sessiyasi davom etmoqda</p>
+</div>
+
+<div class="row">
+  <div class="col-12 col-lg-8 mx-auto">
+      <div class="card">
+          <div class="card-header">
+              <h4 class="card-title">O'yin Sessiyasi davom etmoqda</h4>
+              <div class="card-subtitle">{{ session.game.name }} - {{ session.get_tariff_display }} Tariff</div>
+          </div>
+          <div class="card-body">
+              <div class="row">
+                  <div class="col-12 col-md-6 mb-4">
+                      <div class="card">
+                          <div class="card-header">
+                              <h5 class="card-title">Davomiyligi</h5>
+                          </div>
+                          <div class="card-body">
+                              <div class="session-timer" id="sessionTimer">00:00:00</div>
+                          </div>
+                      </div>
+                  </div>
+                  <div class="col-12 col-md-6 mb-4">
+                      <div class="card">
+                          <div class="card-header">
+                              <h5 class="card-title">Joriy pul</h5>
+                          </div>
+                          <div class="card-body">
+                              <div class="session-cost" id="sessionCost">0.00 So'm</div>
+                          </div>
+                      </div>
+                  </div>
+              </div>
+              
+              <div class="session-status">
+                  <div class="session-status-indicator {% if session.status == 'paused' %}paused{% else %}running{% endif %}" id="statusIndicator"></div>
+                  <span id="statusText">{{ session.get_status_display }}</span>
+              </div>
+          </div>
+          <div class="card-footer d-flex justify-content-between">
+              {% if session.status == 'paused' %}
+                  <a href="{% url 'resume_session' session.pk %}" class="btn btn-primary">Qayta boshlash</a>
+              {% else %}
+                  <a href="{% url 'pause_session' session.pk %}" class="btn btn-outline-warning">Pauza</a>
+              {% endif %}
+              <a href="{% url 'stop_session' session.pk %}" class="btn btn-danger w-auto h-100 p-2 ">O'yinni to'xtatish</a>
+          </div>
+      </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+      const sessionId = {{ session.pk }};
+      const sessionTimer = document.getElementById('sessionTimer');
+      const sessionCost = document.getElementById('sessionCost');
+      const statusIndicator = document.getElementById('statusIndicator');
+      const statusText = document.getElementById('statusText');
+      
+      // Format time function
+      function formatTime(seconds) {
+          const hours = Math.floor(seconds / 3600);
+          const minutes = Math.floor((seconds % 3600) / 60);
+          const secs = Math.floor(seconds % 60);
+          
+          return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+      }
+      
+      // Format currency function
+      function formatCurrency(amount) {
+          return parseFloat(amount).toFixed(2) + " So'm";
+      }
+      
+      // Update session data
+      function updateSessionData() {
+          fetch(`/api/sessions/${sessionId}/data/`)
+              .then(response => response.json())
+              .then(data => {
+                  sessionTimer.textContent = formatTime(data.duration);
+                  sessionCost.textContent = formatCurrency(data.cost);
+                  
+                  // Update status indicator if status has changed
+                  if (data.status === 'paused' && !statusIndicator.classList.contains('Pauzada')) {
+                      statusIndicator.classList.remove('running');
+                      statusIndicator.classList.add('Pauzada');
+                      statusText.textContent = 'Pauzada';
+                  } else if (data.status === 'active' && !statusIndicator.classList.contains('Faol')) {
+                      statusIndicator.classList.remove('paused');
+                      statusIndicator.classList.add('Faol');
+                      statusText.textContent = 'Faol';
+                  }
+              })
+              .catch(error => console.error('Error fetching session data:', error));
+      }
+      
+      // Initial update
+      updateSessionData();
+      
+      // Update every second
+      const interval = setInterval(updateSessionData, 1000);
+      
+      // Clear interval when page is unloaded
+      window.addEventListener('beforeunload', function() {
+          clearInterval(interval);
+      });
+  });
+</script>
+{% endblock %}
