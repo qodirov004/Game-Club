@@ -5,7 +5,7 @@
 
 {% block extra_css %}
 <style>
-/* Game card styles */
+/* Asosiy karta stili */
 .game-card {
   background-color: var(--white);
   border-radius: var(--border-radius);
@@ -13,6 +13,7 @@
   overflow: hidden;
   transition: var(--transition);
   height: 100%;
+  text-decoration: none;
 }
 
 .game-card:hover {
@@ -25,6 +26,34 @@ body.dark-mode .game-card {
   color: #f1f5f9;
 }
 
+/* ✅ Active holatda */
+.game-card.active {
+  background-color: #dc3545 !important;
+  color: #fff;
+}
+
+/* ✅ Active holatda tugmalar oq fon, matn qizil */
+.game-card.active .btn-outline-warning,
+.game-card.active .btn-danger {
+  background-color: #ffffff !important;
+  color: #dc3545 !important;
+  border-color: #ffffff !important;
+}
+
+/* Hoverda ozgina ochroq oq fon */
+.game-card.active .btn-outline-warning:hover,
+.game-card.active .btn-danger:hover {
+  background-color: #f8f9fa !important;
+  color: #dc3545 !important;
+  border-color: #ffffff !important;
+}
+
+/* ✅ Icon ham qizil rangda */
+.game-card.active .btn-danger i {
+  color: #dc3545 !important;
+}
+
+/* Rasm */
 .game-image {
   width: 100%;
   height: 180px;
@@ -36,6 +65,7 @@ body.dark-mode .game-card {
   transform: scale(1.05);
 }
 
+/* Detallar */
 .game-details {
   padding: 1.25rem;
 }
@@ -50,6 +80,7 @@ body.dark-mode .game-title {
   color: #e5e7eb;
 }
 
+/* Narx qatori */
 .game-price {
   display: flex;
   justify-content: space-between;
@@ -74,6 +105,7 @@ body.dark-mode .game-price-tag {
   border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
+/* Tugmalar */
 .game-actions {
   display: flex;
   flex-direction: column;
@@ -84,6 +116,7 @@ body.dark-mode .game-price-tag {
   width: 100%;
 }
 
+/* Dark mode default */
 body.dark-mode .btn-outline-warning {
   color: #fbbf24;
   border-color: #fbbf24;
@@ -108,51 +141,45 @@ body.dark-mode .btn-danger:hover {
 
 {% block content %}
 <div class="page-header d-flex flex-column flex-md-row justify-content-between align-items-md-center">
-    <div>
-        <h2 class="page-title">O'yinlar</h2>
-        <p class="page-subtitle">Mavjud o'yinlarni boshqarish</p>
-    </div>
-    <a href="{% url 'add_game' %}" class="btn btn-primary mt-2 mt-md-0">
-        <i class="fas fa-plus"></i> Yangi o'yin qo'shish
-    </a>
+  <div>
+    <h2 class="page-title">O'yinlar</h2>
+    <p class="page-subtitle">Mavjud o'yinlarni boshqarish</p>
+  </div>
+  <a href="{% url 'add_game' %}" class="btn btn-primary mt-2 mt-md-0">
+    <i class="fas fa-plus"></i> Yangi o'yin qo'shish
+  </a>
 </div>
 
 <div class="row d-flex flex-wrap">
-    {% if games %}
+  {% if games %}
     {% for game in games %}
-    <div class="col-12 col-sm-6 col-md-4 col-lg-3 mb-4">
-        <div class="game-card {% if game.active_session %}bg-danger text-black{% endif %}">
-            <a href="{% url 'start_game' game.pk %}">
-                {% if game.active_session %}
-                    <a href="{% url 'active_session' game.active_session.pk %}" class="game-image-link">
-                        <img src="{{ game.image.url }}" alt="{{ game.name }}" class="game-image">
-                    </a>
-                {% else %}
-                    <img src="{{ game.image.url }}" alt="{{ game.name }}" class="game-image">
-                {% endif %}
-            </a>
+      <div class="col-12 col-sm-6 col-md-4 col-lg-3 mb-4">
+        <a href="{% if game.active_session %}{% url 'active_session' game.active_session.pk %}{% else %}{% url 'start_game' game.pk %}{% endif %}" class="text-decoration-none">
+          <div class="game-card {% if game.active_session %}active{% endif %}">
+            <img src="{{ game.image.url }}" alt="{{ game.name }}" class="game-image">
             <div class="game-details text-center">
-                <h4 class="game-title">{{ game.name }}</h4>
-                <div class="game-price">
-                    <span class="game-price-tag">Soatiga</span>
-                    <span>{{ game.standard_price }} So'm</span>
-                </div>
-                <div class="game-actions d-flex flex-column gap-2">
-                    <a href="{% url 'edit_game' game.pk %}" class="btn btn-outline-warning w-100">Tahrirlash</a>
-                    <a href="{% url 'delete_game' game.pk %}" class="btn btn-danger w-100">
-                        <i class="fas fa-trash"></i>
-                    </a>
-                </div>
+              <h4 class="game-title">{{ game.name }}</h4>
+              <div class="game-price">
+                <span class="game-price-tag">Soatiga</span>
+                <span>{{ game.standard_price }} So'm</span>
+              </div>
+              <div class="game-actions d-flex flex-column gap-2">
+                <a href="{% url 'edit_game' game.pk %}" class="btn btn-outline-warning w-100">Tahrirlash</a>
+                <a href="{% url 'delete_game' game.pk %}" class="btn btn-danger w-100">
+                  <i class="fas fa-trash"></i>
+                </a>
+              </div>
             </div>
-        </div>
-    </div>
+          </div>
+        </a>
+      </div>
     {% endfor %}
-    {% else %}
+  {% else %}
     <div class="col-12">
-        <div class="alert alert-info">
-            O'yin mavjud emas <a href="{% url 'add_game' %}">O'yin qo'shish</a>.
-        </div>
+      <div class="alert alert-info">
+        O'yin mavjud emas <a href="{% url 'add_game' %}">O'yin qo'shish</a>.
+      </div>
     </div>
-    {% endif %}
+  {% endif %}
 </div>
 {% endblock %}

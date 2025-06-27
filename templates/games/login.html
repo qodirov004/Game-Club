@@ -3,44 +3,172 @@
 {% block title %}Tizimga kirish - O'yin Administratori{% endblock %}
 
 {% block auth_content %}
+<style>
+  html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f4f6f9;
+  }
+
+  .login-page {
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+  }
+
+  .login-container {
+    width: 100%;
+    max-width: 420px;
+  }
+
+  .login-card {
+    background-color: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    padding: 30px;
+    transition: background-color 0.3s, color 0.3s;
+  }
+
+  .login-header {
+    text-align: center;
+    margin-bottom: 25px;
+  }
+
+  .login-header .logo {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    color: #007bff;
+  }
+
+  .login-header .logo i {
+    font-size: 36px;
+    margin-bottom: 5px;
+  }
+
+  .login-header h1 {
+    font-size: 24px;
+    margin: 0;
+  }
+
+  .login-header p {
+    font-size: 14px;
+    color: #666;
+    margin-top: 8px;
+  }
+
+  .login-form .form-group {
+    margin-bottom: 20px;
+  }
+
+  .input-with-icon {
+    position: relative;
+  }
+
+  .input-with-icon i {
+    position: absolute;
+    top: 50%;
+    left: 10px;
+    transform: translateY(-50%);
+    color: #999;
+  }
+
+  .input-with-icon input {
+    padding-left: 36px;
+    height: 40px;
+    font-size: 14px;
+  }
+
+  .btn-block {
+    width: 100%;
+    padding: 10px;
+    font-size: 16px;
+  }
+
+  .alert {
+    margin-top: 10px;
+  }
+
+  /* Dark mode qo'llab-quvvatlash */
+  body.dark-mode {
+    background-color: #121212;
+    color: #f1f1f1;
+  }
+
+  body.dark-mode .login-card {
+    background-color: #1e1e1e;
+    color: #f1f1f1;
+    border: 1px solid #2c2c2c;
+  }
+
+  body.dark-mode .login-header .logo {
+    color: #0ea5e9;
+  }
+
+  body.dark-mode .login-header p {
+    color: #aaa;
+  }
+
+  body.dark-mode input {
+    background-color: #2a2a2a;
+    border: 1px solid #444;
+    color: #f1f1f1;
+  }
+
+  body.dark-mode .btn-primary {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+  }
+
+  body.dark-mode .alert-danger {
+    background-color: #661919;
+    border-color: #a94442;
+    color: #f8d7da;
+  }
+</style>
+
 <div class="login-page">
   <div class="login-container">
-      <div class="login-card">
-          <div class="login-header">
-              <div class="logo">
-                  <i class="fas fa-gamepad"></i>
-                  <h1>O'yin Administratori</h1>
-              </div>
-              <p>Boshqaruv paneliga kirish uchun hisob ma'lumotlarini kiriting !</p>
-          </div>
-          <form method="post" class="login-form">
-              {% csrf_token %}
-              <div class="form-group">
-                  <label for="username">Username</label>
-                  <div class="input-with-icon">
-                      <i class="fas fa-user"></i>
-                      <input type="text" name="username" id="username" class="form-control" placeholder="Username" required>
-                  </div>
-              </div>
-              <div class="form-group">
-                  <label for="password">Parol</label>
-                  <div class="input-with-icon">
-                      <i class="fas fa-lock"></i>
-                      <input type="password" name="password" id="password" class="form-control" placeholder="Parol" required>
-                  </div>
-              </div>
-              {% if messages %}
-                  {% for message in messages %}
-                      <div class="alert alert-danger">
-                          {{ message }}
-                      </div>
-                  {% endfor %}
-              {% endif %}
-              <button type="submit" class="btn btn-primary btn-block">
-                  <i class="fas fa-sign-in-alt"></i> Tizimga kirish
-              </button>
-          </form>
+    <div class="login-card">
+      <div class="login-header">
+        <div class="logo">
+          <i class="fas fa-gamepad"></i>
+          <h1>O'yin Administratori</h1>
+        </div>
+        <p>Boshqaruv paneliga kirish uchun hisob ma'lumotlarini kiriting !</p>
       </div>
+      <form method="post" class="login-form">
+        {% csrf_token %}
+        <div class="form-group">
+          <label for="username">Username</label>
+          <div class="input-with-icon">
+            <i class="fas fa-user"></i>
+            <input type="text" name="username" id="username" class="form-control" placeholder="Username" required>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="password">Parol</label>
+          <div class="input-with-icon">
+            <i class="fas fa-lock"></i>
+            <input type="password" name="password" id="password" class="form-control" placeholder="Parol" required>
+          </div>
+        </div>
+        {% if messages %}
+        {% for message in messages %}
+        <div class="alert alert-danger">
+          {{ message }}
+        </div>
+        {% endfor %}
+        {% endif %}
+        <button type="submit" class="btn btn-primary btn-block">
+          <i class="fas fa-sign-in-alt"></i> Tizimga kirish
+        </button>
+      </form>
+    </div>
   </div>
 </div>
 {% endblock %}
